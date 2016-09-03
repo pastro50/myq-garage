@@ -83,7 +83,7 @@ STATES = ['',
         'Opening',
         'Closing',
         ]
-        
+
 def setup_log(name):
    # Log Location
    PATH = os.path.dirname(sys.argv[0])
@@ -227,9 +227,14 @@ def set_doorstate(token, name, desired_state):
 
 
 def get_token():
-    login_url = SERVICE + '/Membership/ValidateUserWithCulture?appId=' + APPID + '&securityToken=null&username=' + USERNAME + '&password=' + PASSWORD + '&culture=' + CULTURE
+    payload = {'appId': APPID,
+	       'securityToken': 'null',
+               'username': USERNAME,
+               'password': PASSWORD,
+               'culture': CULTURE,}
+    login_url = SERVICE + '/Membership/ValidateUserWithCulture'
     try:
-        r = requests.get(login_url)
+        r = requests.get(login_url, params=payload)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_token: ' + str(err))
         return              
@@ -240,9 +245,11 @@ def get_token():
     return data['SecurityToken']
 
 def get_doors(token):
-    system_detail = SERVICE + '/api/UserDeviceDetails?appId=' + APPID + '&securityToken=' + token
+    payload = {'appId': APPID,
+               'securityToken': token,}
+    system_detail = SERVICE + '/api/UserDeviceDetails'
     try:
-        r = requests.get(system_detail)
+        r = requests.get(system_detail, params=payload)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doors: ' + str(err))
         return              
@@ -261,9 +268,13 @@ def get_doors(token):
 
 def get_doorstate(token, id):
     command = 'doorstate'
-    doorstate_url = SERVICE + '/Device/getDeviceAttribute?appId=' + APPID + '&securityToken=' + token + '&devId=' + id + '&name=' + command
+    payload = {'appId': APPID,
+               'securityToken': token,
+               'devId': id,
+               'name': command,}
+    doorstate_url = SERVICE + '/Device/getDeviceAttribute'
     try:
-        r = requests.get(doorstate_url)
+        r = requests.get(doorstate_url, params=payload)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doorstate: ' + str(err))
         return              
@@ -277,9 +288,13 @@ def get_doorstate(token, id):
 
 def get_doorname(token, id):
     command = 'desc'
-    doorstate_url = SERVICE + '/Device/getDeviceAttribute?appId=' + APPID + '&securityToken=' + token + '&devId=' + id + '&name=' + command
+    payload = {'appId': APPID,
+               'securityToken': token,
+               'devId': id,
+               'name': command,}
+    doorstate_url = SERVICE + '/Device/getDeviceAttribute'
     try:
-        r = requests.get(doorstate_url)
+        r = requests.get(doorstate_url, params=payload)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doorname: ' + str(err))
         return     
