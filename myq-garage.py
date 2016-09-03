@@ -247,6 +247,7 @@ def get_token():
     login_url = SERVICE + '/Membership/ValidateUserWithCulture'
     try:
         r = requests.get(login_url, params=payload)
+        LOGGER.debug('GET %s' % r.url)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_token: ' + str(err))
         return              
@@ -262,6 +263,7 @@ def get_doors(token):
     system_detail = SERVICE + '/api/UserDeviceDetails'
     try:
         r = requests.get(system_detail, params=payload)
+        LOGGER.debug('GET %s' % r.url)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doors: ' + str(err))
         return              
@@ -293,6 +295,7 @@ def get_doorstate(token, id):
     doorstate_url = SERVICE + '/Device/getDeviceAttribute'
     try:
         r = requests.get(doorstate_url, params=payload)
+        LOGGER.debug('GET %s' % r.url)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doorstate: ' + str(err))
         return              
@@ -313,6 +316,7 @@ def get_doorname(token, id):
     doorstate_url = SERVICE + '/Device/getDeviceAttribute'
     try:
         r = requests.get(doorstate_url, params=payload)
+        LOGGER.debug('GET %s' % r.url)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doorname: ' + str(err))
         return     
