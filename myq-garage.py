@@ -84,6 +84,18 @@ STATES = ['',
         'Closing',
         ]
 
+# For want of an enum...
+SUPPORTED_DEVICES = {
+  2: 'Doors',
+  5: 'Gate',
+}
+
+UNSUPPORTED_DEVICES = {
+  1: 'Gateway',
+  10: 'Structure',
+  11: 'Thermostat',
+}
+
 def setup_log(name):
    # Log Location
    PATH = os.path.dirname(sys.argv[0])
@@ -257,13 +269,19 @@ def get_doors(token):
     if data['ReturnCode'] != '0':
         print(data['ErrorMessage'])
         sys.exit(2)
+    LOGGER.debug('devices: %s', data['Devices'])
     for device in data['Devices']:
-        #MyQDeviceTypeId Doors == 2, Gateway == 1, Structure == 10, Thermostat == 11
-        if device['MyQDeviceTypeId'] == 2:
+        deviceTypeId = device['MyQDeviceTypeId']
+        if deviceTypeId in SUPPORTED_DEVICES.keys():
+	    LOGGER.debug('Found supported device (%s)' % SUPPORTED_DEVICES[deviceTypeId])
             id = device['DeviceId']
             name = get_doorname(token, id)
             state, time = get_doorstate(token, id)
             DOOR(id, name,state,time)
+	elif deviceTypeId in UNSUPPORTED_DEVICES.keys():
+            LOGGER.warning('Unsupported device (%s) found, skipping' % UNSUPPORTED_DEVICES[deviceTypeId])
+	else:
+            LOGGER.error('Unknown device (%s) found, skipping' % deviceTypeId)
     return DOOR.instances
 
 def get_doorstate(token, id):
