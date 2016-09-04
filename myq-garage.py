@@ -85,7 +85,7 @@ STATES = ['',
         ]
 
 SUPPORTED_DEVICES = {
-  2: 'Doors',
+  2: 'Door',
   5: 'Gate',
 }
 
