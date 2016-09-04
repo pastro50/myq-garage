@@ -83,7 +83,18 @@ STATES = ['',
         'Opening',
         'Closing',
         ]
-        
+
+SUPPORTED_DEVICES = {
+  2: 'Door',
+  5: 'Gate',
+}
+
+UNSUPPORTED_DEVICES = {
+  1: 'Gateway',
+  10: 'Structure',
+  11: 'Thermostat',
+}
+
 def setup_log(name):
    # Log Location
    PATH = os.path.dirname(sys.argv[0])
@@ -227,9 +238,15 @@ def set_doorstate(token, name, desired_state):
 
 
 def get_token():
-    login_url = SERVICE + '/Membership/ValidateUserWithCulture?appId=' + APPID + '&securityToken=null&username=' + USERNAME + '&password=' + PASSWORD + '&culture=' + CULTURE
+    payload = {'appId': APPID,
+               'securityToken': 'null',
+               'username': USERNAME,
+               'password': PASSWORD,
+               'culture': CULTURE,}
+    login_url = SERVICE + '/Membership/ValidateUserWithCulture'
     try:
-        r = requests.get(login_url)
+        r = requests.get(login_url, params=payload)
+        LOGGER.debug('GET %s' % r.url)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_token: ' + str(err))
         return              
@@ -240,9 +257,12 @@ def get_token():
     return data['SecurityToken']
 
 def get_doors(token):
-    system_detail = SERVICE + '/api/UserDeviceDetails?appId=' + APPID + '&securityToken=' + token
+    payload = {'appId': APPID,
+               'securityToken': token,}
+    system_detail = SERVICE + '/api/UserDeviceDetails'
     try:
-        r = requests.get(system_detail)
+        r = requests.get(system_detail, params=payload)
+        LOGGER.debug('GET %s' % r.url)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doors: ' + str(err))
         return              
@@ -250,20 +270,31 @@ def get_doors(token):
     if data['ReturnCode'] != '0':
         print(data['ErrorMessage'])
         sys.exit(2)
+    LOGGER.debug('devices: %s', data['Devices'])
     for device in data['Devices']:
-        #MyQDeviceTypeId Doors == 2, Gateway == 1, Structure == 10, Thermostat == 11
-        if device['MyQDeviceTypeId'] == 2:
+        deviceTypeId = device['MyQDeviceTypeId']
+        if deviceTypeId in SUPPORTED_DEVICES.keys():
+	    LOGGER.debug('Found supported device (%s)' % SUPPORTED_DEVICES[deviceTypeId])
             id = device['DeviceId']
             name = get_doorname(token, id)
             state, time = get_doorstate(token, id)
             DOOR(id, name,state,time)
+	elif deviceTypeId in UNSUPPORTED_DEVICES.keys():
+            LOGGER.warning('Unsupported device (%s) found, skipping' % UNSUPPORTED_DEVICES[deviceTypeId])
+	else:
+            LOGGER.error('Unknown device (%s) found, skipping' % deviceTypeId)
     return DOOR.instances
 
 def get_doorstate(token, id):
     command = 'doorstate'
-    doorstate_url = SERVICE + '/Device/getDeviceAttribute?appId=' + APPID + '&securityToken=' + token + '&devId=' + id + '&name=' + command
+    payload = {'appId': APPID,
+               'securityToken': token,
+               'devId': id,
+               'name': command,}
+    doorstate_url = SERVICE + '/Device/getDeviceAttribute'
     try:
-        r = requests.get(doorstate_url)
+        r = requests.get(doorstate_url, params=payload)
+        LOGGER.debug('GET %s' % r.url)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doorstate: ' + str(err))
         return              
@@ -277,9 +308,14 @@ def get_doorstate(token, id):
 
 def get_doorname(token, id):
     command = 'desc'
-    doorstate_url = SERVICE + '/Device/getDeviceAttribute?appId=' + APPID + '&securityToken=' + token + '&devId=' + id + '&name=' + command
+    payload = {'appId': APPID,
+               'securityToken': token,
+               'devId': id,
+               'name': command,}
+    doorstate_url = SERVICE + '/Device/getDeviceAttribute'
     try:
-        r = requests.get(doorstate_url)
+        r = requests.get(doorstate_url, params=payload)
+        LOGGER.debug('GET %s' % r.url)
     except requests.exceptions.RequestException as err:
         LOGGER.error('Caught Exception in get_doorname: ' + str(err))
         return     
