@@ -84,7 +84,6 @@ STATES = ['',
         'Closing',
         ]
 
-# For want of an enum...
 SUPPORTED_DEVICES = {
   2: 'Doors',
   5: 'Gate',
@@ -240,7 +239,7 @@ def set_doorstate(token, name, desired_state):
 
 def get_token():
     payload = {'appId': APPID,
-	       'securityToken': 'null',
+               'securityToken': 'null',
                'username': USERNAME,
                'password': PASSWORD,
                'culture': CULTURE,}
