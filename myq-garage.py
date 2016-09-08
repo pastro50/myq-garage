@@ -55,7 +55,7 @@ PASSWORD = config.get('main', 'PASSWORD')
 BRAND = config.get('main', 'BRAND')
 
 # ISY Configuration
-USE_ISY = config.get('ISYConfiguration', 'USE_ISY')
+USE_ISY = config.getboolean('ISYConfiguration', 'USE_ISY')
 ISY_HOST = config.get('ISYConfiguration', 'ISY_HOST')
 ISY_PORT = config.get('ISYConfiguration', 'ISY_PORT')
 ISY_USERNAME = config.get('ISYConfiguration', 'ISY_USERNAME')
