@@ -61,7 +61,7 @@ ISY_PORT = config.get('ISYConfiguration', 'ISY_PORT')
 ISY_USERNAME = config.get('ISYConfiguration', 'ISY_USERNAME')
 ISY_PASSWORD = config.get('ISYConfiguration', 'ISY_PASSWORD')
 ISY_VAR_PREFIX = config.get('ISYConfiguration', 'ISY_VAR_PREFIX')
-
+USE_ISY_START_VAR = config.getboolean('ISYConfiguration', 'USE_ISY_START_VAR')
 #MyQ API Configuration
 if (BRAND == 'Chamberlain' or BRAND == 'chamberlain'):
     SERVICE = config.get('APIglobal', 'ChamberSERVICE')
@@ -82,11 +82,16 @@ STATES = ['',
         'Stopped',
         'Opening',
         'Closing',
+        '',
+        '',
+        'Moving',
+        'Open',
         ]
 
 SUPPORTED_DEVICES = {
   2: 'Door',
   5: 'Gate',
+  7: 'Door2',
 }
 
 UNSUPPORTED_DEVICES = {
@@ -278,7 +283,9 @@ def get_doors(token):
             id = device['DeviceId']
             name = get_doorname(token, id)
             state, time = get_doorstate(token, id)
-            DOOR(id, name,state,time)
+# if the name is blank don't add to DOOR. Happens with myq-garage on 2nd device if not defined.
+            if len(name) > 0:
+                DOOR(id, name,state,time)
 	elif deviceTypeId in UNSUPPORTED_DEVICES.keys():
             LOGGER.warning('Unsupported device (%s) found, skipping' % UNSUPPORTED_DEVICES[deviceTypeId])
 	else:
@@ -357,7 +364,9 @@ def gdoor_main():
                 if inst.state == "Open": value = 1
                 else: value = 0
                 isy_set_var_state(id, inst.name, varname, value)
-    
+        if USE_ISY_START_VAR:
+            id, varname, init, value =  isy_get_var_id("start")
+            isy_set_var_state(id, "start", varname, 1)    
     else:
         success = False
         for inst in DOOR.instances:
@@ -378,7 +387,7 @@ if __name__ == "__main__":
     LOGGER = setup_log('myq-garage')
     LOGGER.info('==================================STARTED==================================')
     # Replace stdout with logging to file at INFO level
-    # sys.stdout = SensorLogger(LOGGER, logging.INFO)
+    #sys.stdout = SensorLogger(LOGGER, logging.INFO)
     # Replace stderr with logging to file at ERROR level
     sys.stderr = SensorLogger(LOGGER, logging.ERROR)
     gdoor_main()
